@@ -31,8 +31,7 @@
 <body>
 
     <div class="header">
-        <input type="number" id="search" placeholder="Search weight (e.g. 45)" oninput="filterWeights()">
-    </div>
+<input type="tel" id="search" placeholder="Search weight (e.g. 45)" oninput="filterWeights()">    </div>
 
     <div class="grid" id="grid"></div>
     <div id="no-results" class="hidden">No matching weight possible with your plates.</div>
@@ -81,22 +80,25 @@
         });
 
         // Filtering Function
-        function filterWeights() {
-            const query = document.getElementById('search').value;
-            const cards = document.querySelectorAll('.card');
-            let found = false;
+function filterWeights() {
+    const query = document.getElementById('search').value;
+    const cards = document.querySelectorAll('.card');
+    let found = false;
 
-            cards.forEach(card => {
-                if (query === "" || card.dataset.weight.includes(query)) {
-                    card.classList.remove('hidden');
-                    found = true;
-                } else {
-                    card.classList.add('hidden');
-                }
-            });
+    cards.forEach(card => {
+        const weightValue = card.dataset.weight;
 
-            document.getElementById('no-results').classList.toggle('hidden', found);
+        // Check if the weight starts with the string typed (e.g., "2" matches "22.5")
+        if (query === "" || weightValue.startsWith(query)) {
+            card.classList.remove('hidden');
+            found = true;
+        } else {
+            card.classList.add('hidden');
         }
+    });
+
+    document.getElementById('no-results').classList.toggle('hidden', found);
+}
     </script>
 </body>
 </html>
