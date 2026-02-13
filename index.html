@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Plate Search</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; padding-top: 100px; }
+        
+        /* Sticky Search Header */
+        .header { position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); padding: 15px; z-index: 100; border-bottom: 1px solid #333; backdrop-filter: blur(10px); }
+        input { width: 100%; padding: 15px; font-size: 20px; border-radius: 12px; border: 2px solid #007AFF; background: #1c1c1e; color: white; box-sizing: border-box; outline: none; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        .card { background: #1c1c1e; padding: 15px; border-radius: 12px; border: 1px solid #333; text-align: center; transition: 0.2s; }
+        .total { font-size: 28px; font-weight: bold; color: #fff; }
+        .label { font-size: 10px; color: #007AFF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .plates { font-size: 13px; color: #aaa; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px; }
+        
+        .tag { display: inline-block; padding: 3px 6px; border-radius: 4px; margin: 2px; font-weight: bold; color: #000; font-size: 11px; }
+        /* Colors */
+        .p20 { background: #3d5afe; } .p10 { background: #4caf50; } 
+        .p5  { background: #ffeb3b; } .p25 { background: #ff9800; } .p125{ background: #f44336; }
+        
+        .hidden { display: none; }
+        #no-results { text-align: center; color: #666; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <input type="number" id="search" placeholder="Search weight (e.g. 45)" oninput="filterWeights()">
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div id="no-results" class="hidden">No matching weight possible with your plates.</div>
+
+    <script>
+        const BAR = 7.5;
+        const PLATES = [20, 10, 5, 2.5, 1.25];
+        const grid = document.getElementById('grid');
+
+        // Logic to get every possible physical combination
+        function getCombinations(array) {
+            let res = [[]];
+            for (let i = 0; i < array.length; i++) {
+                let copy = [...res];
+                for (let j = 0; j < copy.length; j++) {
+                    res.push(copy[j].concat(array[i]));
+                }
+            }
+            return res;
+        }
+
+        const combos = getCombinations(PLATES);
+        const uniqueWeights = combos.map(combo => {
+            return {
+                total: BAR + (combo.reduce((a, b) => a + b, 0) * 2),
+                plates: combo.sort((a, b) => b - a)
+            };
+        }).sort((a, b) => a.total - b.total);
+
+        // Build the cards initially
+        uniqueWeights.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.weight = item.total.toString();
+            
+            let plateHTML = item.plates.length > 0 
+                ? item.plates.map(p => `<span class="tag p${p.toString().replace('.','')}">${p}k</span>`).join('')
+                : '<span style="color:#444">Empty Bar</span>';
+
+            card.innerHTML = `
+                <div class="label">Total Weight</div>
+                <div class="total">${item.total}kg</div>
+                <div class="plates">${plateHTML}</div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Filtering Function
+        function filterWeights() {
+            const query = document.getElementById('search').value;
+            const cards = document.querySelectorAll('.card');
+            let found = false;
+
+            cards.forEach(card => {
+                if (query === "" || card.dataset.weight.includes(query)) {
+                    card.classList.remove('hidden');
+                    found = true;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('no-results').classList.toggle('hidden', found);
+        }
+    </script>
+</body>
+</html>
